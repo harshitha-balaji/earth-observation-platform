@@ -1,0 +1,59 @@
+{
+  "NDVI": {
+    "desc": "Normalized Difference Vegetation Index (Measures live green vegetation)",
+    "A": "NIR",
+    "B": "RED",
+    "resolution_m": 10,
+    "classes": [
+      {"label": "Water Bodies / Infrastructure", "min": -1.0, "max": 0.1},
+      {"label": "Bare Soil / Low Vegetation", "min": 0.1, "max": 0.3},
+      {"label": "Moderate Canopy / Grasslands", "min": 0.3, "max": 0.5},
+      {"label": "Dense Forest / Healthy Crops", "min": 0.5, "max": 1.0}
+    ]
+  },
+  "NDWI": {
+    "desc": "Normalized Difference Water Index (Highlights open water bodies & flooding)",
+    "A": "GREEN",
+    "B": "NIR",
+    "resolution_m": 10,
+    "classes": [
+      {"label": "Dry Surfaces / Built-up", "min": -1.0, "max": 0.0},
+      {"label": "High Soil Moisture / Saturated Ground", "min": 0.0, "max": 0.2},
+      {"label": "Open Water Channels / Reservoirs", "min": 0.2, "max": 1.0}
+    ]
+  },
+  "NDBI": {
+    "desc": "Normalized Difference Built-Up Index (Maps urban concrete and infrastructure)",
+    "A": "SWIR",
+    "B": "NIR",
+    "resolution_m": 20,
+    "classes": [
+      {"label": "Natural Vegetation / Water Canopy", "min": -1.0, "max": 0.0},
+      {"label": "Open Fields / Semi-Urban Buffer", "min": 0.0, "max": 0.15},
+      {"label": "Dense Urban Layout / Asphalt / Concrete", "min": 0.15, "max": 1.0}
+    ]
+  },
+  "NBR": {
+    "desc": "Normalized Burn Ratio (Quantifies wildfire burn severity and forest loss)",
+    "A": "NIR",
+    "B": "SWIR2",
+    "resolution_m": 20,
+    "classes": [
+      {"label": "High Burn Severity / Char", "min": -1.0, "max": -0.1},
+      {"label": "Moderate Burn / Bare Soil", "min": -0.1, "max": 0.1},
+      {"label": "Low Severity / Shrub Regrowth", "min": 0.1, "max": 0.27},
+      {"label": "Healthy / Unburned Vegetation", "min": 0.27, "max": 1.0}
+    ]
+  },
+  "NDSI": {
+    "desc": "Normalized Difference Snow Index (Differentiates snow/ice from clouds)",
+    "A": "GREEN",
+    "B": "SWIR",
+    "resolution_m": 20,
+    "classes": [
+      {"label": "Snow-Free Terrain / Water Bodies", "min": -1.0, "max": 0.4},
+      {"label": "Partial Ice / Glacial Edge Mix", "min": 0.4, "max": 0.7},
+      {"label": "Dense Snow Pack / Heavy Glacial Cover", "min": 0.7, "max": 1.0}
+    ]
+  }
+}
