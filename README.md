@@ -114,14 +114,14 @@ An interactive HTML map opens automatically in your browser. Output files are sa
 ## Project Structure
 
 ```
+├── main.py                  # CLI entry point & pipeline router
 spectral_pipeline/
-├── main.py              # CLI entry point & pipeline router
-├── geocoder.py          # Text → bounding box (Nominatim)
-├── adapter.py           # STAC streaming layer (abstract + Sentinel-2 concrete)
-├── engine.py            # Spectral math engine (normalized difference core)
-├── temporal_engine.py   # Dual-date change detection pipeline (v2)
-├── visualizer.py        # Folium map builders + dashboard overlay
-└── recipes.json         # Index configs: bands, classes, resolution
+├── geocoder.py              # Text → bounding box (Nominatim)
+├── adapter.py               # STAC streaming layer (abstract + Sentinel-2 concrete)
+├── engine.py                # Spectral math engine (normalized difference core)
+├── temporal_engine.py       # Dual-date change detection pipeline (v2)
+├── visualizer.py            # Folium map builders + dashboard overlay
+└── recipes.json             # Index configs: bands, classes, resolution
 ```
 
 The architecture is deliberately layered — `engine.py` never touches maps, `visualizer.py` never touches satellite data. Each component can be swapped independently.
