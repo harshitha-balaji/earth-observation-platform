@@ -1,20 +1,6 @@
 import os
-import sys
-import subprocess
 import streamlit as st
 import streamlit.components.v1 as components
-
-# ─── SPACY MODEL BOOTSTRAP ───
-# Downloads en_core_web_sm on first boot if not already installed.
-# Required on Streamlit Cloud which doesn't pre-install spaCy models.
-try:
-    import spacy
-    spacy.load("en_core_web_sm")
-except OSError:
-    subprocess.run(
-        [sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
-        check=True
-    )
 
 # ─── IMPORT ENGINE COUPLING ARCHITECTURE ───
 from spectral_pipeline.geocoder import SpatialGeocoder
