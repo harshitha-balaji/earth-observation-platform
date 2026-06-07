@@ -1,0 +1,9 @@
+{
+  "ndvi": "vegetation",
+  "ndwi": "water",
+  "ndbi": "urban",
+  "nbr": "burn",
+  "ndsi": "snow",
+  "sat": "satellite",
+  "eo": "earth observation"
+}

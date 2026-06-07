@@ -1,0 +1,78 @@
+{
+  "burn": {
+    "index": "NBR",
+    "description": "Wildfire and burn severity analysis",
+    "keywords": [
+      "forest fire",
+      "wildfire",
+      "burn scar",
+      "fire damage",
+      "burned",
+      "burnt",
+      "fire",
+      "burn"
+    ]
+  },
+
+  "vegetation": {
+    "index": "NDVI",
+    "description": "Vegetation health and density analysis",
+    "keywords": [
+      "vegetation",
+      "forest",
+      "crop",
+      "plant",
+      "greenery",
+      "grassland",
+      "canopy",
+      "tree",
+      "agriculture",
+      "farming"
+    ]
+  },
+
+  "water": {
+    "index": "NDWI",
+    "description": "Water body and moisture analysis",
+    "keywords": [
+      "water",
+      "lake",
+      "reservoir",
+      "river",
+      "flood",
+      "shoreline",
+      "moisture",
+      "wetland",
+      "dam"
+    ]
+  },
+
+  "urban": {
+    "index": "NDBI",
+    "description": "Urban and built-up infrastructure analysis",
+    "keywords": [
+      "urban",
+      "city",
+      "building",
+      "infrastructure",
+      "construction",
+      "concrete",
+      "development",
+      "industrial"
+    ]
+  },
+
+  "snow": {
+    "index": "NDSI",
+    "description": "Snow and ice cover analysis",
+    "keywords": [
+      "snow",
+      "ice",
+      "glacier",
+      "snowfall",
+      "snow cover",
+      "ice sheet",
+      "ice cap"
+    ]
+  }
+}

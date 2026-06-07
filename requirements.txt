@@ -1,32 +1,11 @@
-# Earth Observation Engine — Dependencies
-# Install with: pip install -r requirements.txt
-
-# --- Core STAC / Raster stack ---
-pystac-client==0.9.0
-pystac==1.14.3
-odc-stac==0.5.2
-odc-geo==0.5.1
-odc-loader==0.6.4
-rasterio==1.5.0
-xarray==2026.4.0
-dask==2026.3.0
-
-# --- Geospatial math ---
-numpy==2.4.4
-pyproj==3.7.2
-shapely==2.1.2
-affine==2.4.0
-
-# --- Geocoding ---
-geopy==2.4.1
-
-# --- Visualization ---
-folium==0.20.0
-branca==0.8.2
-matplotlib==3.10.8
-
-# --- Utilities ---
-requests==2.33.1
-cachetools==7.1.4
-certifi==2026.2.25
-click==8.3.1
+streamlit
+pystac-client
+odc-stac
+numpy
+geopy
+folium
+branca
+matplotlib
+spacy
+dateparser
+jinja2

@@ -5,6 +5,8 @@ import numpy as np
 from pystac_client import Client
 import odc.stac
 
+from config import DEFAULT_TIME_WINDOW, STAC_ENDPOINT, STAC_COLLECTION, MAX_CLOUD_COVER_PCT
+
 
 class SatelliteAdapter(ABC):
     """
@@ -30,7 +32,7 @@ class SatelliteAdapter(ABC):
         self,
         bbox: Tuple[float, float, float, float],
         required_abstract_bands: List[str],
-        time_window: str = "2026-01-01/2026-05-01",
+        time_window: str = DEFAULT_TIME_WINDOW,
         resolution_m: Optional[int] = None
     ) -> Dict[str, np.ndarray]:
         """
@@ -70,7 +72,7 @@ class Sentinel2Adapter(SatelliteAdapter):
             "swir22": "SWIR2"     # Band 12 — 20m
         }
         super().__init__(band_mapping=sentinel_2_bands)
-        self.stac_endpoint = "https://earth-search.aws.element84.com/v1"
+        self.stac_endpoint = STAC_ENDPOINT
 
     def fetch_spatial_window(
         self,
@@ -84,25 +86,18 @@ class Sentinel2Adapter(SatelliteAdapter):
 
         CRS / resolution strategy
         ─────────────────────────
-        odc.stac.load is designed for projected coordinate systems with resolution
-        expressed in metres. Passing crs="EPSG:4326" with a degree-converted
-        resolution causes it to silently return all-zero arrays — which is why the
-        overlay appeared white and all stats showed 0.0.
-
-        Fix: use EPSG:3857 (Web Mercator, metres) as the output CRS with resolution
-        in metres. This is the same projection Leaflet/OSM uses, so the resulting
-        array aligns perfectly with the folium ImageOverlay bounds without any
-        reprojection artefacts. When no resolution is specified (single-snapshot
-        mode), we let odc.stac infer the native resolution from the scene metadata,
-        which is always valid for single-scene loads.
+        Fix: Added bbox_crs="EPSG:4326" to explicitly tell odc.stac that our geocoder
+        bounds are in degrees. This allows the engine to properly reproject the target bounding
+        box coordinates into the meter-based EPSG:3857 Web Mercator grid without dropping 
+        out-of-bounds or creating empty, all-zero arrays.
         """
         catalog = Client.open(self.stac_endpoint)
 
         search_query = catalog.search(
-            collections=["sentinel-2-l2a"],
+            collections=[STAC_COLLECTION],
             bbox=bbox,
             datetime=time_window,
-            query={"eo:cloud_cover": {"lt": 5}},
+            query={"eo:cloud_cover": {"lt": MAX_CLOUD_COVER_PCT}},
             sortby=[{"field": "properties.eo:cloud_cover", "direction": "asc"}]
         )
 
@@ -115,14 +110,16 @@ class Sentinel2Adapter(SatelliteAdapter):
 
         target_scene = search_items[0]
 
-        # Always project into Web Mercator (metres) — compatible with Leaflet's
-        # tile coordinate system and safe for odc.stac's metre-based resolution engine.
+        # Explicitly pair your coordinate spaces!
+        # Informing odc.stac that the input bounds are WGS84 degrees (4326) while mapping
+        # the output target coordinate canvas to meter-based Web Mercator projection (3857).
         load_kwargs = dict(
             bands=bands,
             bbox=bbox,
+            bbox_crs="EPSG:4326",  # Correctly registers the geocoder source format
             chunks={},
             fail_on_error=False,
-            crs="EPSG:3857",
+            crs="EPSG:3857",       # Establishes clean Web Mercator meter output layout
         )
 
         # Only pin resolution when explicitly requested (temporal mode).

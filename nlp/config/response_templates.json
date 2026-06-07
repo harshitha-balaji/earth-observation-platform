@@ -1,0 +1,31 @@
+{
+  "NDVI": {
+    "high": "Dense and healthy vegetation cover detected across the study region.",
+    "medium": "Moderate vegetation presence observed.",
+    "low": "Sparse vegetation cover detected."
+  },
+
+  "NDWI": {
+    "high": "Strong water signatures detected across the region.",
+    "medium": "Moderate surface water presence observed.",
+    "low": "Limited open water detected."
+  },
+
+  "NDBI": {
+    "high": "Dense built-up and urbanized areas identified.",
+    "medium": "Mixed urban and natural land cover observed.",
+    "low": "Minimal urban infrastructure detected."
+  },
+
+  "NBR": {
+    "high": "Severe burn signatures detected.",
+    "medium": "Moderate burn impact observed.",
+    "low": "Minimal fire-related disturbance detected."
+  },
+
+  "NDSI": {
+    "high": "Extensive snow and ice cover detected.",
+    "medium": "Partial snow coverage observed.",
+    "low": "Limited snow presence detected."
+  }
+}
