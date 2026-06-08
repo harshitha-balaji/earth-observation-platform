@@ -1,6 +1,6 @@
-# 🛰️ Earth Observation Engine v3.0
+# 🛰️ Earth Observation Platform v3.0
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-FF4B4B?logo=streamlit&logoColor=white)
 ![Sentinel-2](https://img.shields.io/badge/Sentinel--2-AWS%20STAC-orange)
 ![spaCy](https://img.shields.io/badge/NLP-spaCy-09A3D5?logo=spacy&logoColor=white)
@@ -25,7 +25,7 @@ Track forest fires in California between 2025-06-01 and 2026-01-01
 
 ## What is this?
 
-EOE v3.0 upgrades the original terminal-based pipeline into a full **Streamlit web workspace** with a natural language control center. Instead of navigating menus, you describe your analysis in plain English — the NLP engine extracts the intent, location, spectral target, and date window automatically and routes it through the correct pipeline.
+EOP v3.0 upgrades the original terminal-based pipeline into a full **Streamlit web workspace** with a natural language control center. Instead of navigating menus, you describe your analysis in plain English — the NLP engine extracts the intent, location, spectral target, and date window automatically and routes it through the correct pipeline.
 
 The satellite data pipeline underneath is unchanged: direct AWS Earth Search STAC catalog access, cloud-optimized GeoTIFF streaming, and pixel-level spectral math — all without any manual data downloads.
 
@@ -70,6 +70,12 @@ The NLP layer handles intent classification, location entity extraction, tempora
 - Synchronized side-by-side split-map for direct visual comparison
 - Change classification: severe disturbance → stable → active regrowth
 
+### v3 — Natural Language Platform
+- Plain English query interface replacing all terminal prompts
+- Automatic intent, location, date, and mode extraction
+- Centralized config architecture for all operational parameters
+- Streamlit web workspace with telemetry dashboard
+
 ---
 
 ## Supported Spectral Indices
@@ -111,7 +117,7 @@ python -m spacy download en_core_web_sm
 
 ### 2. Clone and run
 ```bash
-git clone https://github.com/YOUR_USERNAME/earth-observation-engine.git
+git clone https://github.com/harshitha-balaji/earth-observation-engine.git
 cd earth-observation-engine
 streamlit run app.py
 ```
@@ -156,15 +162,12 @@ The architecture is deliberately layered — `engine.py` never touches maps, `vi
 
 ---
 
-
-
 ## Roadmap
 
-- [ ] Dataclass-based pipeline payload contracts (v3.1 refactor)
-- [ ] Interpretation layer — plain English analysis summary per result
+- [ ] K-means data-driven change classification (v4)
+- [ ] Dataclass-based pipeline payload contracts (v4)
+- [ ] PDF report generation per analysis (v4)
 - [ ] Landsat-8/9 adapter (extend `SatelliteAdapter`)
-- [ ] Cloud cover threshold exposed as user parameter
-
 
 ---
 
