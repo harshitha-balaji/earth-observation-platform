@@ -1,15 +1,3 @@
----
-title: Earth Observation Platform
-emoji: 🛰️
-colorFrom: green
-colorTo: blue
-sdk: streamlit
-sdk_version: 1.32.0
-app_file: app.py
-pinned: false
-python_version: "3.11"
----
-
 # 🛰️ Earth Observation Engine v3.0
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
