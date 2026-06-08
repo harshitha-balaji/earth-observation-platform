@@ -1,5 +1,6 @@
 # 🛰️ Earth Observation Platform v3.0
 
+[![Open in HF Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-sm.svg)](https://huggingface.co/spaces/harshithabalaji/earth-observation-platform)
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-FF4B4B?logo=streamlit&logoColor=white)
 ![Sentinel-2](https://img.shields.io/badge/Sentinel--2-AWS%20STAC-orange)
