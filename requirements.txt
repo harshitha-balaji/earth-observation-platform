@@ -1,4 +1,4 @@
-streamlit
+streamlit==1.32.0
 pystac-client
 odc-stac
 numpy
@@ -6,7 +6,7 @@ geopy
 folium
 branca
 matplotlib
-spacy
-en-core-web-sm @ https://huggingface.co/spacy/en_core_web_sm/resolve/main/en_core_web_sm-any-py3-none-any.whl
+spacy==3.7.4
+en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
 dateparser
 jinja2
