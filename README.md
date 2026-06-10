@@ -1,16 +1,21 @@
-# 🛰️ Earth Observation Platform v4.0
+# 🛰️ Earth Observation Platform (EOP) v4.0
 
 [![Open in HF Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-sm.svg)](https://huggingface.co/spaces/harshithabalaji/earth-observation-platform)
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-FF4B4B?logo=streamlit&logoColor=white)
-![Sentinel-2](https://img.shields.io/badge/Sentinel--2-AWS%20STAC-orange)
-![spaCy](https://img.shields.io/badge/NLP-spaCy-09A3D5?logo=spacy&logoColor=white)
-![sklearn](https://img.shields.io/badge/CV-scikit--learn-F7931E?logo=scikitlearn&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+[![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Sentinel-2](https://img.shields.io/badge/Sentinel--2-AWS%20STAC-orange?style=flat-square)](https://earth-search.aws.element84.com/v1)
+![spaCy](https://img.shields.io/badge/NLP-spaCy-09A3D5?style=flat-square&logo=spacy&logoColor=white)
+![sklearn](https://img.shields.io/badge/CV-scikit--learn-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
+![Config](https://img.shields.io/badge/architecture-config--driven-yellow?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 
-Cloud-native geospatial intelligence platform — stream real Sentinel-2 satellite imagery from AWS, describe what you want to analyze in plain English, and get a live spectral analysis map with unsupervised ML-powered change classification.
+---
 
-No downloads. No accounts. No GIS experience required.
+## What is this?
+
+GIS tools require GIS expertise. EOP doesn't.
+
+Describe what you want to analyze in plain English — a location, a phenomenon, a date range — and the platform handles everything else: parsing intent, streaming real Sentinel-2 L2A imagery from AWS, computing spectral indices on the raw pixel matrix, and classifying change using unsupervised K-Means clustering. No downloads. No accounts. No GIS experience required.
 
 ```
 Track forest fires in California between 2025-06-01 and 2026-01-01
@@ -26,13 +31,9 @@ Track forest fires in California between 2025-06-01 and 2026-01-01
 
 ---
 
-## What is this?
+## What it's useful for
 
-EOP is a cloud-native geospatial intelligence platform that connects natural language to satellite data. Type a location and describe what you want to track — the NLP engine extracts intent, location, spectral target, and date window automatically, routes it through the correct pipeline, and returns a live interactive map with pixel-level spectral analysis.
-
-Under the hood, the platform streams real Sentinel-2 L2A imagery directly from the AWS Earth Search STAC catalog — no manual downloads, no preprocessing, no accounts. Pixel matrices are computed on the fly, classified using unsupervised K-Means clustering, and rendered as interactive Folium maps with an embedded analytics dashboard.
-
-**What it's useful for:** Environmental monitoring, land cover analysis, disaster impact assessment, urban growth tracking, agricultural health monitoring, glacier and water body change detection — any domain where satellite-derived spectral intelligence matters. The natural language interface makes it accessible to domain experts who don't want to write GIS code, while the modular architecture makes it extensible for engineers who do.
+Environmental monitoring, land cover analysis, disaster impact assessment, urban growth tracking, agricultural health monitoring, glacier and water body change detection — any domain where satellite-derived spectral intelligence matters. The natural language interface makes it accessible to domain experts who don't want to write GIS code, while the modular architecture makes it extensible for engineers who do.
 
 ---
 
@@ -75,14 +76,14 @@ Full-screen Folium maps with dark CartoDB basemap, per-index matplotlib colormap
 Sidebar tracks the last 5 analyses with timestamp, location, pipeline type, and index — persistent across reruns via Streamlit session state.
 
 ### Distribution Chart
-Plotly horizontal bar chart visualizes the class distribution per analysis run with dynamic titles ("Temporal Change Distribution" vs "Land Cover Distribution") based on pipeline context.
+Plotly horizontal bar chart visualizes class distribution per analysis run with dynamic titles ("Temporal Change Distribution" vs "Land Cover Distribution") based on pipeline context.
 
 ---
 
 ## Supported Spectral Indices
 
 | Index | What it measures | Bands used | Resolution |
-|---|---|---|---|
+|-------|-----------------|------------|------------|
 | NDVI | Live green vegetation density | NIR, Red | 10m |
 | NDWI | Open water bodies & flood extent | Green, NIR | 10m |
 | NDBI | Urban infrastructure & concrete | SWIR, NIR | 20m |
@@ -96,17 +97,15 @@ All indices are config-driven via `recipes.json` — adding a new one requires z
 ## Tech Stack
 
 | Layer | Library |
-|---|---|
-| Web frontend | Streamlit |
-| NLP parsing | spaCy (`en_core_web_sm`) + dateparser |
-| CV classification | scikit-learn (K-Means) |
-| STAC catalog access | pystac-client |
-| Cloud-native raster streaming | odc-stac |
-| Numerical matrix math | numpy |
-| Geocoding | geopy (Nominatim) |
-| Map rendering | folium + branca |
-| Colormap rendering | matplotlib |
-| Distribution charts | plotly |
+|-------|---------|
+| Web frontend | `Streamlit` |
+| NLP parsing | `spaCy` (en_core_web_sm) + `dateparser` |
+| CV classification | `scikit-learn` (K-Means) |
+| STAC catalog access | `pystac-client` |
+| Cloud-native raster streaming | `odc-stac` |
+| Numerical matrix math | `numpy` |
+| Geocoding | `geopy` (Nominatim) |
+| Map rendering & charts | `folium`, `branca`, `plotly`, `matplotlib` |
 
 ---
 
@@ -150,16 +149,16 @@ flood extent near Chennai after 2018-08-01 to 2018-10-01
 │       ├── intents.json            # Intent → spectral index keyword mapping
 │       ├── aliases.json            # Query normalization / shorthand expansion
 │       └── response_templates.json # UI feedback text baselines
-│      
+│
 ├── spectral_pipeline/
 │   ├── geocoder.py                 # Text → bounding box (Nominatim)
 │   ├── adapter.py                  # STAC streaming layer (abstract + Sentinel-2 concrete)
 │   ├── engine.py                   # Spectral math engine (normalized difference core)
 │   ├── temporal_engine.py          # Dual-date change detection pipeline
 │   ├── visualizer.py               # Folium map builders + analytics dashboard overlay
-│   ├── recipes.json                # Index configs: bands, colormaps, resolution
+│   └── recipes.json                # Index configs: bands, colormaps, resolution
 ├── cv/
-│   └── kmeans_classifier.py    # Unsupervised K-Means CV change classification layer
+│   └── kmeans_classifier.py        # Unsupervised K-Means CV change classification layer
 └── interface/
     └── command_executor.py         # Execution coordinator: geocode → stream → compute → render
 ```
@@ -180,12 +179,22 @@ The architecture is deliberately layered — `engine.py` never touches maps, `vi
 
 ## Notes
 
-- Imagery is sourced from the [AWS Earth Search](https://earth-search.aws.element84.com/v1) public STAC endpoint. No API key required.
-- Scenes are filtered to `< 5%` cloud cover automatically.
-- Temporal mode uses EPSG:3857 (Web Mercator) with pinned resolution to guarantee pixel-aligned arrays across date windows — critical for valid delta computation.
-- Backend models and pipeline components are cached on first boot via `@st.cache_resource` — subsequent reruns are instant.
-- K-Means centroids are sorted post-convergence so semantic cluster labels are consistent across every run.
+- Imagery sourced from the [AWS Earth Search](https://earth-search.aws.element84.com/v1) public STAC endpoint — no API key required
+- Scenes filtered to `< 5%` cloud cover automatically
+- Temporal mode uses EPSG:3857 (Web Mercator) with pinned resolution to guarantee pixel-aligned arrays across date windows — critical for valid delta computation
+- Backend models and pipeline components cached on first boot via `@st.cache_resource` — subsequent reruns are instant
+- K-Means centroids sorted post-convergence so semantic cluster labels are consistent across every run
 
 ---
 
-*Built at the intersection of NLP, remote sensing, and unsupervised machine learning.*
+## Limitations
+
+- NLP intent classification uses keyword matching — ambiguous or highly domain-specific queries may misroute
+- Geocoding depends on Nominatim's coverage — obscure or informal location names may fail to resolve
+- Cloud cover filter (`< 5%`) can reduce available scenes in persistently cloudy regions
+- K-Means cluster count is fixed at 4 — unusual data distributions may not segment cleanly into four meaningful classes
+- Temporal alignment assumes consistent scene geometry across dates — significant orbital variation may affect delta accuracy
+
+---
+
+*Built at the intersection of NLP, remote sensing, and unsupervised ML — because satellite data shouldn't require a GIS degree to use.*
