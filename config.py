@@ -59,3 +59,6 @@ APP_PAGE_TITLE            = "EOE v3.0 | Earth Observation Dashboard"
 APP_PAGE_ICON             = "🛰️"
 APP_MAP_HEIGHT_PX         = 650
 DEFAULT_QUERY_TEXT        = "Track forest fires in California between 2026-01-01 and 2026-05-01"
+
+# ── COMPUTER VISION LAYER CONFIGURATION ──
+N_CLUSTERS = 4  # Matches: Severe Loss, Minor Loss, Stable Ground, Recovery

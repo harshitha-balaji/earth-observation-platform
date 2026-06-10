@@ -1,27 +1,40 @@
 import os
 import streamlit as st
 import streamlit.components.v1 as components
+from datetime import datetime
+import pandas as pd
+import plotly.express as px
 
-# ─── IMPORT ENGINE COUPLING ARCHITECTURE ───
 from spectral_pipeline.geocoder import SpatialGeocoder
 from spectral_pipeline.engine import SpectralEngine
 from spectral_pipeline.adapter import Sentinel2Adapter
 from spectral_pipeline.temporal_engine import TemporalChangeEngine
+
 from nlp.parser import QueryParser
 from nlp.router import QueryRouter
 from interface.command_executor import CommandExecutor
+
 from config import (
     APP_PAGE_TITLE,
     APP_PAGE_ICON,
     APP_MAP_HEIGHT_PX,
-    DEFAULT_QUERY_TEXT,
     BUFFER_SLIDER_MIN,
     BUFFER_SLIDER_MAX,
     BUFFER_SLIDER_STEP,
     DEFAULT_BUFFER_KM,
 )
 
-# ─── STREAMLIT PAGE CONFIGURATION ───
+# ─────────────────────────────
+# THEME
+# ─────────────────────────────
+PRIMARY = "#4F8CFF"
+PANEL = "#18181C"
+TEXT = "#FFFFFF"
+MUTED = "#A1A1AA"
+
+# ─────────────────────────────
+# PAGE CONFIG
+# ─────────────────────────────
 st.set_page_config(
     page_title=APP_PAGE_TITLE,
     page_icon=APP_PAGE_ICON,
@@ -29,16 +42,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ─── INFRASTRUCTURE CACHING ───
+# ─────────────────────────────
+# STATE
+# ─────────────────────────────
+if "query_history" not in st.session_state:
+    st.session_state.query_history = []
+
+if "has_run" not in st.session_state:
+    st.session_state.has_run = False
+
+# ─────────────────────────────
+# BACKEND BOOTSTRAP
+# ─────────────────────────────
 @st.cache_resource
-def bootstrap_eoe_backend():
-    """
-    Initializes and caches heavy pipeline models in server memory.
-    Runs exactly ONCE on boot — keeps subsequent reruns instant.
-    """
+def bootstrap_eop_backend():
     geocoder = SpatialGeocoder()
-    engine   = SpectralEngine()
-    adapter  = Sentinel2Adapter()
+    engine = SpectralEngine()
+    adapter = Sentinel2Adapter()
 
     temporal_engine = TemporalChangeEngine(
         geocoder=geocoder,
@@ -58,94 +78,181 @@ def bootstrap_eoe_backend():
 
     return parser, router, executor
 
-# Instantiate the cached components
-parser, router, executor = bootstrap_eoe_backend()
 
+parser, router, executor = bootstrap_eop_backend()
 
-# ─── MAIN WORKSPACE HEADER ───
-st.markdown(
-    """
-    <div style="background-color: #18181C; padding: 20px; border-radius: 10px; border-left: 5px solid #00FF66; margin-bottom: 25px;">
-        <h1 style="color: #00FF66; font-family: monospace; margin: 0; padding-bottom: 5px;">
-            🛰️ EARTH OBSERVATION ENGINE v3.0
-        </h1>
-        <p style="color: #A1A1AA; font-family: monospace; margin: 0; font-size: 14px;">
-            Cloud-Native Multi-Spectral Pipeline Workspace Powered by AWS Sentinel-2 Registry
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# ─────────────────────────────
+# LANDING PAGE
+# ─────────────────────────────
+st.markdown(f"""
+<div style="
+    background-color:{PANEL};
+    padding: 28px;
+    border-radius: 14px;
+    border-left: 6px solid {PRIMARY};
+    margin-bottom: 20px;
+">
+    <h1 style="color:{PRIMARY}; margin:0;">
+        🛰 Earth Observation Platform
+    </h1>
+    <p style="color:{MUTED}; margin-top:10px; font-size:15px;">
+        Welcome back.<br><br>
+        Explore vegetation, urban growth, water bodies,<br>
+        and environmental change using satellite imagery<br>
+        and natural language.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
-
-# ─── SIDEBAR CONTROL CENTER ───
-with st.sidebar:
-    st.markdown("<h3 style='color: #00FF66;'>🎛️ CONTROL CENTER</h3>", unsafe_allow_html=True)
-    st.write("Submit standard language commands or fine-tune spatial bounds manually.")
-    st.markdown("---")
-
-    user_query = st.text_area(
-        "Natural Language Query Request:",
-        value=DEFAULT_QUERY_TEXT,
-        height=100,
-        help="Type a target query specifying an action index, location, and dates."
+# ─────────────────────────────
+# MAIN INPUT (UPDATED UI)
+# ─────────────────────────────
+with st.container():
+    st.markdown(
+        "<p style='color:#A1A1AA; font-size:13px;'>Natural Language Query</p>",
+        unsafe_allow_html=True
     )
 
-    st.markdown("<p style='color: #A1A1AA; font-size: 13px; margin-top: 15px;'>🎚️ Manual Parameter Tuning</p>", unsafe_allow_html=True)
+    user_query = st.text_input(
+        "",
+        placeholder="Track forest fires in California between 2025-01-01 and 2026-01-01",
+        label_visibility="collapsed"
+    )
+
+    execute_pipeline = st.button("🛰 Analyze", use_container_width=True)
+
+# ─────────────────────────────
+# SIDEBAR — MISSION CONTROL
+# ─────────────────────────────
+with st.sidebar:
+    st.markdown("## 🎛 Mission Control")
+
+    st.markdown("### 📜 Mission Log")
+
+    for item in reversed(st.session_state.query_history[-5:]):
+        st.markdown(f"**{item['time']}**  \n{item['loc']} — {item['pipe']}")
+
+    st.markdown("---")
+    st.markdown("### ⚙ Advanced Parameters")
 
     buffer_km = st.slider(
-        "Spatial Capture Radius (km)",
+        "Buffer Radius (km)",
         min_value=BUFFER_SLIDER_MIN,
         max_value=BUFFER_SLIDER_MAX,
         value=DEFAULT_BUFFER_KM,
         step=BUFFER_SLIDER_STEP
     )
 
-    st.markdown("---")
-
-    execute_pipeline = st.button("🚀 EXECUTE SAT STREAM", use_container_width=True)
-
-
-# ─── MAIN WORKSPACE CANVAS ───
+# ─────────────────────────────
+# EXECUTION FLOW
+# ─────────────────────────────
 if execute_pipeline and user_query:
 
-    with st.spinner("🤖 EOE Chatbot: Booting backend calculations, streaming matrices, and compiling map layout..."):
-        try:
-            # 1. Feed NLP parser
-            request_payload = parser.parse(user_query)
+    st.session_state.has_run = True
 
-            # 2. Extract pipeline route
+    with st.spinner(f"Analyzing {user_query} ..."):
+        try:
+            request_payload = parser.parse(user_query)
             route_packet = router.route(request_payload)
 
-            # 3. Inject manual slider value into the packet
-            route_packet["buffer_km"] = float(buffer_km)
+            route_packet.buffer_km = float(buffer_km)
 
-            # ─── TELEMETRY DASHBOARD METRICS ───
-            st.markdown("<h4 style='color: #A1A1AA; margin-top: 10px;'>📊 Pipeline Telemetry</h4>", unsafe_allow_html=True)
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric(label="Selected Pipeline",     value=route_packet["pipeline"].upper())
-            with col2:
-                st.metric(label="Target Spectral Index", value=route_packet["index"])
-            with col3:
-                st.metric(label="Resolved Region Target", value=route_packet["location"].title())
+            result = executor.execute(route_packet)
 
-            # 4. Execute pipeline — returns path to generated HTML map
-            generated_map_path = executor.execute(route_packet)
+            map_path = result["map_path"]
+            stats_payload = result["stats_payload"]
+            metadata = result["metadata"]
 
-            # 5. Read and render map inline
-            if os.path.exists(generated_map_path):
-                with open(generated_map_path, "r", encoding="utf-8") as html_file:
-                    map_markup_content = html_file.read()
+            # ─────────────────────────────
+            # MAP
+            # ─────────────────────────────
+            st.markdown("## 🗺 Analysis Result")
 
-                st.markdown("<h4 style='color: #00FF66; margin-top: 20px;'>🗺️ INTERACTIVE MAP WORKSPACE</h4>", unsafe_allow_html=True)
-                components.html(map_markup_content, height=APP_MAP_HEIGHT_PX, scrolling=False)
-                st.success("🤖 Chatbot: Pipeline run completed successfully! Workspace is live.")
+            st.markdown(f"""
+            <div style="
+                background:{PANEL};
+                padding:10px;
+                border-radius:10px;
+                border-left:4px solid {PRIMARY};
+                margin-bottom:10px;
+                color:{TEXT};
+            ">
+            📍 {route_packet.location}  
+            🛰 {route_packet.index} Analysis  
+            </div>
+            """, unsafe_allow_html=True)
+
+            if os.path.exists(map_path):
+                with open(map_path, "r", encoding="utf-8") as f:
+                    map_html = f.read()
+
+                components.html(map_html, height=APP_MAP_HEIGHT_PX, scrolling=False)
+
             else:
-                st.error("Visualization Defect: Map page compiled but file footprint could not be located on disk.")
+                st.error("Map could not be loaded.")
 
-        except Exception as pipeline_error:
-            st.error(f"❌ Core Execution Failure: {pipeline_error}")
+            # ─────────────────────────────
+            # 📊 MISSION INSIGHTS
+            # ─────────────────────────────
+            st.markdown("## 📊 Mission Insights")
+
+            summary = stats_payload.get("summary_metrics", {})
+
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Min", summary.get("min", "N/A"))
+            col2.metric("Max", summary.get("max", "N/A"))
+            col3.metric("Mean", summary.get("mean", "N/A"))
+            col4.metric("Resolution", stats_payload.get("resolution_m", "N/A"))
+
+            # ─────────────────────────────
+            # 🌍 DYNAMIC DISTRIBUTION TITLE
+            # ─────────────────────────────
+            pipeline_type = route_packet.pipeline.lower() if hasattr(route_packet, "pipeline") else "snapshot"
+
+            if pipeline_type == "temporal":
+                chart_title = "## 📈 Temporal Change Distribution"
+            else:
+                chart_title = "## 🌍 Land Cover Distribution"
+
+            st.markdown(chart_title)
+
+            classes = stats_payload.get("class_distribution", [])
+
+            if classes:
+                df = pd.DataFrame({
+                    "Class": [c["label"] for c in classes],
+                    "Percentage": [c["percentage"] for c in classes]
+                })
+
+                fig = px.bar(
+                    df,
+                    x="Percentage",
+                    y="Class",
+                    orientation="h",
+                    text="Percentage"
+                )
+
+                fig.update_layout(
+                    plot_bgcolor=PANEL,
+                    paper_bgcolor=PANEL,
+                    font_color=TEXT,
+                    height=350
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+
+            # ─────────────────────────────
+            # HISTORY
+            # ─────────────────────────────
+            st.session_state.query_history.append({
+                "time": datetime.now().strftime("%H:%M"),
+                "loc": route_packet.location,
+                "pipe": route_packet.pipeline.upper(),
+                "index": route_packet.index
+            })
+
+        except Exception as e:
+            st.error(f"Analysis failed: {e}")
 
 else:
-    st.info("👋 Awaiting commands. Enter your telemetry search targets inside the Control Center sidebar and hit Execute!")
+    st.info("Welcome back. What would you like to analyze today?")

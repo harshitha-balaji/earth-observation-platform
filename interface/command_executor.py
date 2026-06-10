@@ -1,46 +1,37 @@
 import os
-
-from spectral_pipeline.visualizer import (
-    MapVisualizer,
-    TemporalMapVisualizer
-)
-from config import (
-    DEFAULT_BUFFER_KM,
-    DEFAULT_TIME_WINDOW,
-    TEMPORAL_PRE_WINDOW_DEFAULT,
-    TEMPORAL_POST_WINDOW_DEFAULT,
-)
-
+from nlp.routes import BaseRoute, SnapshotRoute, TemporalRoute
+from spectral_pipeline.visualizer import MapVisualizer, TemporalMapVisualizer
 
 class CommandExecutor:
 
-    def __init__(self, geocoder, adapter, engine, temporal_engine):
+    def __init__(self, geocoder, adapter, engine, temporal_engine) -> None:
         self.geocoder        = geocoder
         self.adapter         = adapter
         self.engine          = engine
         self.temporal_engine = temporal_engine
 
-    def execute(self, route: dict) -> str:
+    def execute(self, route: BaseRoute) -> dict:
         """
-        Executes the routed pipeline instructions and returns the absolute path
-        to the generated HTML map asset for native UI rendering.
+        Accepts a strongly typed route instance, safely inspects the subclass mapping,
+        and hands execution off to target underlying matrix mathematics blocks.
         """
-        pipeline = route["pipeline"]
-
-        if pipeline == "snapshot":
+        if isinstance(route, SnapshotRoute):
             return self._execute_snapshot(route)
-
-        elif pipeline == "temporal":
+        elif isinstance(route, TemporalRoute):
             return self._execute_temporal(route)
 
-        raise ValueError(f"Unsupported pipeline: {pipeline}")
+        raise ValueError(f"Unsupported pipeline transaction: {type(route).__name__}")
 
-    def _execute_snapshot(self, route: dict) -> str:
-        location  = route["location"]
-        index     = route["index"]
-        buffer_km = route.get("buffer_km", DEFAULT_BUFFER_KM)
+    def _execute_snapshot(self, route: SnapshotRoute) -> dict:
+        location  = route.location
+        index     = route.index
+        buffer_km = route.buffer_km
 
-        recipe       = self.engine.recipes[index]
+        recipe = self.engine.recipes.get(index)
+
+        if recipe is None:
+            raise ValueError(f"Unknown index: {index}. Available: {list(self.engine.recipes.keys())}")
+        
         needed_bands = [recipe["A"], recipe["B"]]
 
         bbox = self.geocoder.resolve_text_to_bbox(location, buffer_km=buffer_km)
@@ -48,33 +39,45 @@ class CommandExecutor:
         raw_bands = self.adapter.ingest_data(
             bbox=bbox,
             required_abstract_bands=needed_bands,
-            time_window=DEFAULT_TIME_WINDOW
         )
 
-        index_matrix  = self.engine.run(index, raw_bands)
-        stats_payload = self.engine.generate_spatial_statistics(index_matrix, index)
+        matrix_out = self.engine.run(index_name=index, available_bands=raw_bands)
+        
+        stats_payload = self.engine.generate_spatial_statistics(
+            matrix=matrix_out,
+            index_name=index
+        )
 
-        clean_name    = self._clean_location_name(location)
-        output_html   = f"{clean_name}_snapshot_{index.lower()}.html"
+        clean_name  = self._clean_location_name(location)
+        output_html = f"{clean_name}_snapshot_{index.lower()}.html"
 
+        # ── FIXED: Aligned method call to match create_interactive_html in visualizer.py ──
         html_page_path = MapVisualizer.create_interactive_html(
-            matrix=index_matrix,
+            matrix=matrix_out,
             bbox=bbox,
             index_name=index,
             stats_payload=stats_payload,
             output_filename=output_html
         )
 
-        return html_page_path
+        return {
+            "map_path": html_page_path,
+            "stats_payload": stats_payload,
+            "metadata": {
+                    "location": location,
+                    "index": index,
+                    "pipeline": "snapshot",
+                    "buffer_km": buffer_km,
+                }
+            }
 
-    def _execute_temporal(self, route: dict) -> str:
-        location  = route["location"]
-        index     = route["index"]
-        buffer_km = route.get("buffer_km", DEFAULT_BUFFER_KM)
-
-        # Use parsed windows from NLP; fall back to config defaults if absent
-        pre_window  = route.get("pre_window")  or TEMPORAL_PRE_WINDOW_DEFAULT
-        post_window = route.get("post_window") or TEMPORAL_POST_WINDOW_DEFAULT
+    def _execute_temporal(self, route: TemporalRoute) -> dict:
+        location  = route.location
+        index     = route.index
+        buffer_km = route.buffer_km
+        
+        pre_window  = route.pre_window
+        post_window = route.post_window
 
         (
             matrix_pre,
@@ -102,13 +105,19 @@ class CommandExecutor:
             output_filename=output_html
         )
 
-        return html_page_path
+        return {
+            "map_path": html_page_path,
+            "stats_payload": stats_payload,
+            "metadata": {
+                    "location": location,
+                    "index": index,
+                    "pipeline": "temporal",
+                    "buffer_km": buffer_km,
+                    "pre_window": pre_window,
+                    "post_window": post_window,
+                    }
+        }
 
     @staticmethod
     def _clean_location_name(location: str) -> str:
-        return (
-            location.lower()
-            .replace(" ", "_")
-            .replace(",", "")
-            .replace(".", "")
-        )
+        return location.replace(" ", "_").replace(",", "").lower()
