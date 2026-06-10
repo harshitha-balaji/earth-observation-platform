@@ -1,13 +1,14 @@
-# 🛰️ Earth Observation Platform v3.0
+# 🛰️ Earth Observation Platform v4.0
 
 [![Open in HF Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-sm.svg)](https://huggingface.co/spaces/harshithabalaji/earth-observation-platform)
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-FF4B4B?logo=streamlit&logoColor=white)
 ![Sentinel-2](https://img.shields.io/badge/Sentinel--2-AWS%20STAC-orange)
 ![spaCy](https://img.shields.io/badge/NLP-spaCy-09A3D5?logo=spacy&logoColor=white)
+![sklearn](https://img.shields.io/badge/CV-scikit--learn-F7931E?logo=scikitlearn&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-Cloud-native multi-spectral satellite analysis platform — stream real Sentinel-2 imagery from AWS, describe what you want to analyze in plain English, and get a live interactive map in your browser.
+Cloud-native geospatial intelligence platform — stream real Sentinel-2 satellite imagery from AWS, describe what you want to analyze in plain English, and get a live spectral analysis map with unsupervised ML-powered change classification.
 
 No downloads. No accounts. No GIS experience required.
 
@@ -19,31 +20,37 @@ Track forest fires in California between 2025-06-01 and 2026-01-01
 → Querying Sentinel-2 L2A STAC catalog (pre-event window)...
 → Querying Sentinel-2 L2A STAC catalog (post-event window)...
 → Computing dNBR differential matrix...
-→ Rendering synchronized split-map workspace → live in browser
+→ Running K-Means CV segmentation on change matrix...
+→ Clusters converged — rendering synchronized dual-map workspace
 ```
 
 ---
 
 ## What is this?
 
-EOP v3.0 upgrades the original terminal-based pipeline into a full **Streamlit web workspace** with a natural language control center. Instead of navigating menus, you describe your analysis in plain English — the NLP engine extracts the intent, location, spectral target, and date window automatically and routes it through the correct pipeline.
+EOP is a cloud-native geospatial intelligence platform that connects natural language to satellite data. Type a location and describe what you want to track — the NLP engine extracts intent, location, spectral target, and date window automatically, routes it through the correct pipeline, and returns a live interactive map with pixel-level spectral analysis.
 
-The satellite data pipeline underneath is unchanged: direct AWS Earth Search STAC catalog access, cloud-optimized GeoTIFF streaming, and pixel-level spectral math — all without any manual data downloads.
+Under the hood, the platform streams real Sentinel-2 L2A imagery directly from the AWS Earth Search STAC catalog — no manual downloads, no preprocessing, no accounts. Pixel matrices are computed on the fly, classified using unsupervised K-Means clustering, and rendered as interactive Folium maps with an embedded analytics dashboard.
+
+**What it's useful for:** Environmental monitoring, land cover analysis, disaster impact assessment, urban growth tracking, agricultural health monitoring, glacier and water body change detection — any domain where satellite-derived spectral intelligence matters. The natural language interface makes it accessible to domain experts who don't want to write GIS code, while the modular architecture makes it extensible for engineers who do.
 
 ---
 
-## What's New in v3.0
+## Version Roadmap
 
-| Feature | v2 (CLI) | v3.0 (Platform) |
-|---|---|---|
-| Interface | Terminal menu prompts | Streamlit web workspace |
-| Query input | Menu selections | Natural language text |
-| NLP engine | None | spaCy NER + intent classifier |
-| Date parsing | ISO input only | Natural expressions + ISO dates |
-| Location extraction | Plain text input | Automatic entity extraction |
-| Pipeline routing | Manual mode selection | Auto-detected from query |
-| Config management | Scattered constants | Centralized `config.py` |
-| Backend caching | None | `@st.cache_resource` (one-time boot) |
+EOP evolved across four versions, each adding a distinct capability layer:
+
+### v1 — Spectral Core
+The foundation. A terminal-based pipeline that geocoded a location by name, streamed Sentinel-2 bands from AWS STAC, computed a spectral index on the raw pixel matrix, and rendered a full-screen interactive Folium map with a dark-themed analytics dashboard overlay. Single snapshot mode only.
+
+### v2 — Temporal Intelligence
+Added multi-temporal change detection. Dual STAC queries across two separate date windows, pixel-aligned differential matrix computation (Δindex = pre − post) at fixed resolution, and a synchronized side-by-side split-map for direct visual comparison. Introduced change classification with severity tiers.
+
+### v3 — Natural Language Platform
+Replaced the terminal menu entirely with a Streamlit web workspace and NLP control center. spaCy NER for geographic entity extraction, intent classification via phrase-length keyword matching, `dateparser` integration for natural language date expressions, and automatic temporal vs snapshot mode detection. Centralized `config.py` architecture and `@st.cache_resource` backend caching.
+
+### v4 — CV Intelligence Layer *(current)*
+Added an unsupervised computer vision classification layer and overhauled the UI. K-Means clustering replaces hardcoded threshold bins — change boundaries are now learned from the data itself. Dataclass-based pipeline contracts replace loose dictionaries between NLP and execution layers. Redesigned mission-log UI with Plotly distribution charts and in-memory HTML rendering.
 
 ---
 
@@ -54,28 +61,21 @@ Write queries the way you'd describe them to a colleague:
 - `"Show vegetation health in the Amazon basin"`
 - `"Track urban expansion in Bangalore between 2024-01-01 and 2026-01-01"`
 - `"Map flood extent in Kerala after the 2018-08-01 monsoon"`
-- `"How did the Himalayan glaciers change since 2023-01-01 to 2025-12-01"`
+- `"How did the Himalayan snow cover change between 2023-01-01 and 2025-12-01"`
 
-The NLP layer handles intent classification, location entity extraction, temporal vs snapshot mode detection, and date window parsing — including natural expressions like "last year" and "since 2020."
+The NLP layer handles intent classification, location entity extraction, temporal vs snapshot mode detection, and date window parsing — including natural expressions like "last year" and "since 2020." A regex fallback handles natural landmarks that spaCy NER misses.
 
-### v1 — Single Snapshot Mode
-- Geocode any location by name via OpenStreetMap Nominatim
-- Stream Sentinel-2 L2A bands directly from AWS STAC
-- Compute spectral indices on the raw pixel matrix
-- Render a full-screen interactive Folium/Leaflet map with stats dashboard overlay
-- Spatial statistics: coverage breakdown by class, area in km², matrix min/max/mean
+### K-Means CV Classification Layer
+Change matrices are segmented using scikit-learn K-Means clustering rather than fixed thresholds. Centroids are sorted post-convergence to guarantee ordered semantic labels (Label 0 = max loss → Label 3 = max growth) regardless of how the clusters initialize. Boundaries adapt to the actual data distribution of each unique analysis — a fire in a dry region and a fire in a dense forest produce different cluster boundaries, as they should.
 
-### v2 — Multi-Temporal Change Detection Mode
-- Dual STAC queries across two date windows (pre/post event)
-- Pixel-aligned differential matrix (Δindex = pre − post) at fixed resolution
-- Synchronized side-by-side split-map for direct visual comparison
-- Change classification: severe disturbance → stable → active regrowth
+### Interactive Map Workspace
+Full-screen Folium maps with dark CartoDB basemap, per-index matplotlib colormaps (YlGn for NDVI, PuRd for NBR etc.), and an embedded analytics dashboard showing classification breakdown, area coverage, and matrix intensity statistics. Temporal mode renders a synchronized side-by-side DualMap for direct pre/post visual comparison.
 
-### v3 — Natural Language Platform
-- Plain English query interface replacing all terminal prompts
-- Automatic intent, location, date, and mode extraction
-- Centralized config architecture for all operational parameters
-- Streamlit web workspace with telemetry dashboard
+### Mission Log
+Sidebar tracks the last 5 analyses with timestamp, location, pipeline type, and index — persistent across reruns via Streamlit session state.
+
+### Distribution Chart
+Plotly horizontal bar chart visualizes the class distribution per analysis run with dynamic titles ("Temporal Change Distribution" vs "Land Cover Distribution") based on pipeline context.
 
 ---
 
@@ -99,12 +99,14 @@ All indices are config-driven via `recipes.json` — adding a new one requires z
 |---|---|
 | Web frontend | Streamlit |
 | NLP parsing | spaCy (`en_core_web_sm`) + dateparser |
+| CV classification | scikit-learn (K-Means) |
 | STAC catalog access | pystac-client |
 | Cloud-native raster streaming | odc-stac |
 | Numerical matrix math | numpy |
 | Geocoding | geopy (Nominatim) |
 | Map rendering | folium + branca |
 | Colormap rendering | matplotlib |
+| Distribution charts | plotly |
 
 ---
 
@@ -112,7 +114,7 @@ All indices are config-driven via `recipes.json` — adding a new one requires z
 
 ### 1. Install dependencies
 ```bash
-pip install streamlit pystac-client odc-stac numpy geopy folium branca matplotlib spacy dateparser
+pip install streamlit pystac-client odc-stac numpy geopy folium branca matplotlib spacy dateparser scikit-learn plotly pandas
 python -m spacy download en_core_web_sm
 ```
 
@@ -123,14 +125,14 @@ cd earth-observation-engine
 streamlit run app.py
 ```
 
-### 3. Use the Control Center
-Enter a natural language query in the sidebar, adjust the spatial capture radius if needed, and hit **EXECUTE SAT STREAM**.
+### 3. Use the platform
+Type a natural language query in the main input and hit **Analyze**. Adjust the buffer radius in the sidebar for larger or smaller capture windows.
 
 ```
-Track forest fires in California between 2025-06-01 and 2026-01-01
+vegetation in Bengaluru
+track fire damage in California between 2025-01-01 and 2026-01-01
+flood extent near Chennai after 2018-08-01 to 2018-10-01
 ```
-
-The interactive map renders live in the workspace canvas. Output HTML files are saved to `output_maps/`.
 
 ---
 
@@ -141,45 +143,49 @@ The interactive map renders live in the workspace canvas. Output HTML files are 
 ├── config.py                       # Central configuration — all constants live here
 ├── nlp/
 │   ├── parser.py                   # NLP core: intent, location, date, mode extraction
-│   ├── router.py                   # Routes parsed payload to snapshot or temporal pipeline
+│   ├── router.py                   # Routes parsed payload → typed dataclass routes
+│   ├── routes.py                   # SnapshotRoute & TemporalRoute dataclass contracts
 │   ├── location_extractor.py       # spaCy NER-based geographic entity extractor
 │   └── config/
 │       ├── intents.json            # Intent → spectral index keyword mapping
 │       ├── aliases.json            # Query normalization / shorthand expansion
-│       ├── temporal_keywords.json  # Tokens that trigger temporal mode detection
 │       └── response_templates.json # UI feedback text baselines
+│      
 ├── spectral_pipeline/
 │   ├── geocoder.py                 # Text → bounding box (Nominatim)
 │   ├── adapter.py                  # STAC streaming layer (abstract + Sentinel-2 concrete)
 │   ├── engine.py                   # Spectral math engine (normalized difference core)
 │   ├── temporal_engine.py          # Dual-date change detection pipeline
-│   ├── visualizer.py               # Folium map builders + dashboard overlay
-│   └── recipes.json                # Index configs: bands, classes, resolution
+│   ├── visualizer.py               # Folium map builders + analytics dashboard overlay
+│   ├── recipes.json                # Index configs: bands, colormaps, resolution
+├── cv/
+│   └── kmeans_classifier.py    # Unsupervised K-Means CV change classification layer
 └── interface/
     └── command_executor.py         # Execution coordinator: geocode → stream → compute → render
 ```
 
-The architecture is deliberately layered — `engine.py` never touches maps, `visualizer.py` never touches satellite data, `parser.py` knows nothing about spectral indices. Each component can be swapped or extended independently.
+The architecture is deliberately layered — `engine.py` never touches maps, `visualizer.py` never touches satellite data, `parser.py` knows nothing about spectral indices, and `cv/` is isolated from both the data pipeline and the UI. Each component can be swapped or extended independently.
 
 ---
 
-## Roadmap
+## Design Decisions
 
-- [ ] K-means data-driven change classification (v4)
-- [ ] Dataclass-based pipeline payload contracts (v4)
-- [ ] PDF report generation per analysis (v4)
-- [ ] Landsat-8/9 adapter (extend `SatelliteAdapter`)
+**Why config-driven indices?** `recipes.json` binds band mappings, colormaps, and resolution to each index name. The engine executes a normalized difference formula — the config determines which bands to use. Adding a new index is a JSON edit, not a code change.
+
+**Why K-Means over hardcoded bins?** Fixed thresholds assume the same change boundaries apply to every location, season, and index. K-Means finds natural cluster boundaries in the actual data distribution. A burn scar in the Atacama and a burn scar in the Amazon rainforest have different baseline NDVI values — their change classification should reflect that.
+
+**Why dataclasses over dictionaries?** `SnapshotRoute` and `TemporalRoute` guarantee type safety and field presence between the NLP layer and the execution layer. Validation and normalization (title-casing locations, uppercasing index names, chronological date checks) happen at construction time in `__post_init__`, not scattered across the pipeline.
 
 ---
 
 ## Notes
 
 - Imagery is sourced from the [AWS Earth Search](https://earth-search.aws.element84.com/v1) public STAC endpoint. No API key required.
-- Scenes are filtered to `< 5%` cloud cover and sorted by cloud coverage automatically.
+- Scenes are filtered to `< 5%` cloud cover automatically.
 - Temporal mode uses EPSG:3857 (Web Mercator) with pinned resolution to guarantee pixel-aligned arrays across date windows — critical for valid delta computation.
-- The NLP layer uses spaCy NER for location extraction with a regex fallback for natural landmarks. Date parsing uses `dateparser` with ISO-8601 regex fallback.
 - Backend models and pipeline components are cached on first boot via `@st.cache_resource` — subsequent reruns are instant.
+- K-Means centroids are sorted post-convergence so semantic cluster labels are consistent across every run.
 
 ---
 
-Built to explore the intersection of NLP, remote sensing, and satellite data pipelines.
+*Built at the intersection of NLP, remote sensing, and unsupervised machine learning.*
