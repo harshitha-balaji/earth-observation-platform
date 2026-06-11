@@ -39,7 +39,7 @@ LOCATION_FALLBACK_MESSAGE = (
 TEMPORAL_ANCHOR_WORDS = [
     "between", "over", "history", "trend", "temporal",
     "years", "months", "timeline", "delta", "change",
-    "before", "after", "since", "compare", "shift"
+    "before", "after", "since", "compare", "shift","from"
 ]
 
 # ── Location extractor ────────────────────────────────────────────────────────

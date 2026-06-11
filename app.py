@@ -219,25 +219,32 @@ if execute_pipeline and user_query:
             classes = stats_payload.get("class_distribution", [])
 
             if classes:
+                classes_sorted = sorted(classes, key=lambda c: c["percentage"], reverse=True)
+
                 df = pd.DataFrame({
-                    "Class": [c["label"] for c in classes],
-                    "Percentage": [c["percentage"] for c in classes]
-                })
+                        "Class": [c["label"] for c in classes_sorted],
+                        "Percentage": [round(c["percentage"], 2) for c in classes_sorted]
+                        })
 
                 fig = px.bar(
-                    df,
-                    x="Percentage",
-                    y="Class",
-                    orientation="h",
-                    text="Percentage"
-                )
+                            df,
+                            x="Percentage",
+                            y="Class",
+                            orientation="h",
+                            )
+
+                fig.update_traces(
+                    text=df["Percentage"].astype(str) + "%",
+                    textposition="outside"
+                            )
 
                 fig.update_layout(
                     plot_bgcolor=PANEL,
                     paper_bgcolor=PANEL,
                     font_color=TEXT,
-                    height=350
-                )
+                    height=350,
+                    yaxis={"categoryorder": "total ascending"}
+                    )
 
                 st.plotly_chart(fig, use_container_width=True)
 

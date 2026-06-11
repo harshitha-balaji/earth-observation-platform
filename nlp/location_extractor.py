@@ -26,6 +26,7 @@ class LocationExtractor:
         if not query or not query.strip():
             return ""
 
+        query = query.strip().title()
         doc = self.nlp(query)
 
         # 1. Primary Strategy: Grab standard Geopolitical Entities (GPE) or General Locations (LOC)

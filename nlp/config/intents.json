@@ -10,7 +10,9 @@
       "burned",
       "burnt",
       "fire",
-      "burn"
+      "burn",
+      "nbr"
+
     ]
   },
 
@@ -27,7 +29,8 @@
       "canopy",
       "tree",
       "agriculture",
-      "farming"
+      "farming",
+      "ndvi"
     ]
   },
 
@@ -43,7 +46,8 @@
       "shoreline",
       "moisture",
       "wetland",
-      "dam"
+      "dam",
+      "ndwi"
     ]
   },
 
@@ -58,7 +62,8 @@
       "construction",
       "concrete",
       "development",
-      "industrial"
+      "industrial",
+      "ndbi"
     ]
   },
 
@@ -72,7 +77,8 @@
       "snowfall",
       "snow cover",
       "ice sheet",
-      "ice cap"
+      "ice cap",
+      "ndsi"
     ]
   }
 }

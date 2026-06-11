@@ -27,7 +27,6 @@ class QueryParser:
 
         # Load essential config tracking structures
         self.intents         = self._load_json("intents.json")
-        self.aliases         = self._load_json("aliases.json")
         self.response_templates = self._load_json("response_templates.json")
 
         # ── Single spaCy load ─────────────────────────────────────────────────
@@ -46,19 +45,12 @@ class QueryParser:
 
     # ── Public parsing methods ────────────────────────────────────────────────
 
-    def normalize_query(self, query: str) -> str:
-        query = query.lower()
-        for alias, canonical in self.aliases.items():
-            query = query.replace(alias.lower(), canonical.lower())
-        return query
-
     def detect_intent(self, query: str) -> dict:
-        normalized = self.normalize_query(query)
-        doc        = self.nlp(normalized)
+        doc        = self.nlp(query)
 
-        tokens    = [token.text  for token in doc]
-        lemmas    = [token.lemma_ for token in doc]
-        full_text = doc.text
+        tokens    = [token.text.lower()  for token in doc]
+        lemmas    = [token.lemma_.lower() for token in doc]
+        full_text = doc.text.lower()
 
         intent_matches = []
 
@@ -86,13 +78,20 @@ class QueryParser:
         raise ValueError(INTENT_FALLBACK_MESSAGE)
 
     def detect_mode(self, query: str) -> str:
-        normalized          = self.normalize_query(query)
-        doc                 = self.nlp(normalized)
-        tokens_and_lemmas   = [t.text for t in doc] + [t.lemma_ for t in doc]
+        doc = self.nlp(query.lower())
+
+        # 1. strongest signal: actual dates
+        dates = self.extract_dates(query)
+        if len(dates) >= 2:
+            return "temporal"
+
+        # 2. temporal anchor words fallback
+        tokens_and_lemmas = [t.text.lower() for t in doc] + [t.lemma_.lower() for t in doc]
 
         for word in TEMPORAL_ANCHOR_WORDS:
-            if word in tokens_and_lemmas:
+            if word.lower() in tokens_and_lemmas:
                 return "temporal"
+
         return "snapshot"
 
     def extract_explicit_dates(self, query: str) -> list:
